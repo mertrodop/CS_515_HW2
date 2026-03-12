@@ -8,6 +8,7 @@ from models.MLP import MLP
 from models.CNN import MNIST_CNN, SimpleCNN
 from models.VGG import VGG
 from models.ResNet import ResNet, BasicBlock
+from models.mobilenet import MobileNetV2
 from train import run_training
 from test  import run_test
 
@@ -54,6 +55,10 @@ def build_model(params):
         if dataset == "mnist":
             raise ValueError("ResNet is designed for 3-channel images; use cifar10 with resnet.")
         return ResNet(BasicBlock, params["resnet_layers"], num_classes=nc)
+    if model_name == "mobilenet":
+        if dataset == "mnist":
+            raise ValueError("MobileNetV2 is designed for 3-channel images; use cifar10 with mobilenet.")
+    return MobileNetV2(num_classes=nc)
 
     raise ValueError(f"Unknown model: {model_name}")
 
