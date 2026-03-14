@@ -6,7 +6,12 @@ def get_params():
 
     parser.add_argument("--mode",      choices=["train", "test", "both"], default="both")
     parser.add_argument("--dataset",   choices=["mnist", "cifar10"],      default="mnist")
-    parser.add_argument("--model", choices=["mlp", "cnn", "vgg", "resnet", "mobilenet"], default="mlp")
+    parser.add_argument("--model", choices=["mlp", "cnn", "vgg", "resnet", "mobilenet", "transfer"], default="mlp")
+    # Transfer learning-specific
+    parser.add_argument("--transfer_backbone", choices=["resnet18", "vgg16"], default="resnet18",
+                        help="Pretrained backbone to use when --model=transfer")
+    parser.add_argument("--pretrained_option", type=int, choices=[1, 2], default=1,
+                        help="1 = resize to 224 + freeze backbone, 2 = modify early convs + train all")
     parser.add_argument("--epochs",    type=int,   default=10)
     parser.add_argument("--lr",        type=float, default=1e-3)
     parser.add_argument("--device",    type=str,   default="cpu")
@@ -45,6 +50,9 @@ def get_params():
         "dropout":      0.3,
         "vgg_depth":    args.vgg_depth,
         "resnet_layers": args.resnet_layers,
+        "transfer_backbone": args.transfer_backbone,
+        "pretrained_option": args.pretrained_option,
+        "resize_224":        False,
 
         # Training
         "epochs":        args.epochs,

@@ -9,6 +9,7 @@ from models.CNN import MNIST_CNN, SimpleCNN
 from models.VGG import VGG
 from models.ResNet import ResNet, BasicBlock
 from models.mobilenet import MobileNetV2
+from models.Transfer import Transfer_Config, build_transfer_model
 from train import run_training
 from test  import run_test
 
@@ -58,7 +59,18 @@ def build_model(params):
     if model_name == "mobilenet":
         if dataset == "mnist":
             raise ValueError("MobileNetV2 is designed for 3-channel images; use cifar10 with mobilenet.")
-    return MobileNetV2(num_classes=nc)
+        return MobileNetV2(num_classes=nc)
+
+    if model_name == "transfer":
+        if dataset == "mnist":
+            raise ValueError("Transfer learning only supports cifar10.")
+        config = Transfer_Config(
+            backbone=params["transfer_backbone"],
+            num_classes=nc,
+            option=params["pretrained_option"],
+        )
+        params["resize_224"] = (params["pretrained_option"] == 1)
+        return build_transfer_model(config)
 
     raise ValueError(f"Unknown model: {model_name}")
 

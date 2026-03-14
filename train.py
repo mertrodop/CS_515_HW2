@@ -14,6 +14,26 @@ def get_transforms(params, train=True):
             transforms.Normalize(mean, std),
         ])
     else:  # cifar10
+        if params.get("resize_224", False):
+            if train:
+                return transforms.Compose([
+                    transforms.Resize(224),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        mean=(0.4914, 0.4822, 0.4465),
+                        std=(0.2023, 0.1994, 0.2010),
+                    ),
+                ])
+            else:
+                return transforms.Compose([
+                    transforms.Resize(224),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        mean=(0.4914, 0.4822, 0.4465),
+                        std=(0.2023, 0.1994, 0.2010),
+                    ),
+                ])
         if train:
             return transforms.Compose([
                 transforms.RandomCrop(32, padding=4),
@@ -86,9 +106,8 @@ def validate(model, loader, criterion, device):
 def run_training(model, params, device):
     train_loader, val_loader = get_loaders(params)
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(),
-                                 lr=params["learning_rate"],
-                                 weight_decay=params["weight_decay"])
+    trainable = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.Adam(trainable,lr=params["learning_rate"],weight_decay=params["weight_decay"])
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
 
     best_acc     = 0.0
