@@ -2,6 +2,7 @@ import random
 import ssl
 import numpy as np
 import torch
+import torch.nn as nn
 
 from parameters import get_params
 from models.MLP import MLP
@@ -18,7 +19,8 @@ from test  import run_test
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
-def set_seed(seed):
+def set_seed(seed: int) -> None:
+    """Seed all RNGs for reproducible training."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -27,7 +29,8 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
 
 
-def build_model(params):
+def build_model(params: dict) -> nn.Module:
+    """Instantiate and return the model specified in params."""
     model_name = params["model"]
     dataset    = params["dataset"]
     nc         = params["num_classes"]
@@ -75,7 +78,8 @@ def build_model(params):
     raise ValueError(f"Unknown model: {model_name}")
 
 
-def main():
+def main() -> None:
+    """Entry point: parse args, build model, run train/test per --mode."""
     params = get_params()
 
     set_seed(params["seed"])

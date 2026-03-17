@@ -1,7 +1,8 @@
 import argparse
 
 
-def get_params():
+def get_params() -> dict:
+    """Parse CLI arguments and return a unified params dict for training/testing."""
     parser = argparse.ArgumentParser(description="Deep Learning on MNIST / CIFAR-10")
 
     parser.add_argument("--mode",      choices=["train", "test", "both"], default="both")
@@ -22,6 +23,8 @@ def get_params():
     parser.add_argument("--resnet_layers", type=int, nargs=4, default=[2, 2, 2, 2],
                         metavar=("L1", "L2", "L3", "L4"),
                         help="Number of blocks per ResNet layer (default: 2 2 2 2 = ResNet-18)")
+    parser.add_argument("--label_smoothing", type=float, default=0.0,
+                        help="Label smoothing epsilon (0.0 = standard CE, 0.1 = Szegedy et al.)")
 
     args = parser.parse_args()
 
@@ -68,4 +71,7 @@ def get_params():
 
         # CLI
         "mode":         args.mode,
+
+        # Label smoothing
+        "label_smoothing": args.label_smoothing,
     }

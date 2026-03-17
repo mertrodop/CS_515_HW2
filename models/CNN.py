@@ -25,37 +25,37 @@ class MNIST_CNN(nn.Module):
 
 class SimpleCNN(nn.Module):
     """
-    Example of CNN architecture with Kaiming (He) initialization applied.
+    3-conv SimpleCNN for CIFAR-10 (32×32 RGB input).
+    Uses BatchNorm + Kaiming initialization.
     """
     def __init__(self, num_classes=10):
         super(SimpleCNN, self).__init__()
-        
-        # Convolutional layers
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
-        
-        # Fully connected layers
-        self.fc1 = nn.Linear(64 * 8 * 8, 128)  # assuming input images 32x32
-        self.fc2 = nn.Linear(128, num_classes)
 
-        # Apply Kaiming initialization
+        self.features = nn.Sequential(
+            # Block 1: 32×32 → 32×32
+            nn.Conv2d(3, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            # Block 2: 32×32 → 16×16
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2),
+            # Block 3: 16×16 → 8×8
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2),
+        )
+
+        self.classifier = nn.Sequential(
+            nn.Linear(128 * 8 * 8, 256),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.Linear(256, num_classes),
+        )
+
         self._initialize_weights()
-        
-        """
-        Kaiming initialization is typically applied to convolutional and linear layers when using ReLU activations.
-        It helps maintain the variance of activations through the layers, which can lead to better convergence during training.
-        For convolutional layers, we use 'fan_in' mode, which considers the number of input units to the layer.
-        'fan_out' mode can also be used if you want to consider the number of output units, but 'fan_in' is more common for ReLU.
-        In practice, 'fan_in' is often preferred for ReLU activations because it helps prevent the variance from exploding as we go deeper into the network.
-
-        Formula for Kaiming initialization (for ReLU):
-        weight ~ N(0, sqrt(2 / fan_in))
-
-        2.0 is the ReLU correction factor. ReLU zeros out ~half of all activations
-        (anything negative), which halves the signal variance at each layer.
-        Doubling the initial variance compensates for this, keeping the signal stable.
-
-        """
 
     def _initialize_weights(self):
         for m in self.modules():
@@ -68,18 +68,7 @@ class SimpleCNN(nn.Module):
                 nn.init.zeros_(m.bias)
 
     def forward(self, x):
-        # Conv layers + ReLU + MaxPool
-        x = F.relu(self.conv1(x)) # 32 - 3 + 2*1 = 32 ((padding=1 keeps size))
-        x = F.max_pool2d(x, 2)  # 32x32 -> 16x16
-
-        x = F.relu(self.conv2(x)) # 16 - 3 + 2*1 = 16 (padding=1 keeps size)
-        x = F.max_pool2d(x, 2)  # 16x16 -> 8x8
-
-        # Flatten
+        x = self.features(x)
         x = x.view(x.size(0), -1)
-
-        # Fully connected layers
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)  # output logits
-
+        x = self.classifier(x)
         return x
