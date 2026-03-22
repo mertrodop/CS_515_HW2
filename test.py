@@ -1,4 +1,7 @@
+"""Test module for evaluating trained models on CIFAR-10 or MNIST datasets."""
+
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
@@ -6,7 +9,20 @@ from train import get_transforms
 
 
 @torch.no_grad()
-def run_test(model, params, device):
+def run_test(model: nn.Module, params: dict, device: torch.device) -> None:
+    """Evaluate a trained model on the test split and print per-class accuracy.
+
+    Loads model weights from ``params["save_path"]``, runs inference over the
+    full test set, and reports overall accuracy together with per-class
+    breakdown.
+
+    Args:
+        model: The neural network to evaluate.
+        params: Configuration dictionary produced by ``get_params()``.  Must
+            contain keys: ``dataset``, ``data_dir``, ``batch_size``,
+            ``num_workers``, ``save_path``, and ``num_classes``.
+        device: Device on which to run inference (CPU, CUDA, or MPS).
+    """
     tf = get_transforms(params, train=False)
 
     if params["dataset"] == "mnist":

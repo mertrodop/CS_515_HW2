@@ -53,7 +53,7 @@ def build_model(params: dict) -> nn.Module:
     if model_name == "vgg":
         if dataset == "mnist":
             raise ValueError("VGG is designed for 3-channel images; use cifar10 with vgg.")
-        return VGG(dept=params["vgg_depth"], num_class=nc)
+        return VGG(depth=params["vgg_depth"], num_class=nc)
 
     if model_name == "resnet":
         if dataset == "mnist":
